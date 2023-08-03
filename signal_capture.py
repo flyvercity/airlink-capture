@@ -1,13 +1,7 @@
 import logging as lg
 import traceback
 import subprocess
-import asyncio
-
-
-async def wait_10s():
-    for i in range(10):
-        lg.info(f'Waiting {10 - i} seconds')
-        await asyncio.sleep(1)
+import time
 
 
 def send_command(at_command):
@@ -27,30 +21,40 @@ def send_command(at_command):
     return answer
 
 
-async def run(log):
-    while True:
-        try:
-            lg.debug('Entering the cycle')
-            while True:
-                lg.debug('Signal quality query')
-                moni_string = send_command('AT#MONI')
-                lg.info('Signal quality:', moni_string)
-                log.write(moni_string)
-                await asyncio.sleep(1)
+class SignalCapture:
+    def __init__(self, args, event):
+        self.args = args
+        self.event = event
 
-        except KeyboardInterrupt:
-            return
+    def wait_10s(self):
+        for i in range(10):
+            lg.info(f'Waiting {10 - i} seconds')
+            time.sleep(1)
 
-        except Exception as exc:
-            traceback.print_exc()
-            print('There was error', exc)
-            await wait_10s()
+            if self.event.is_set():
+                return
 
+    def _loop(self, log):
+        while True:
+            try:
+                self.wait_10s()
+                lg.debug('Signal :: Entering the cycle')
+                while True:
+                    if self.event.is_set():
+                        lg.debug('Signal :: Exiting')
+                        return
 
-async def main():
-    with open('signal.txt', 'at') as log:
-        await run(log)
+                    lg.debug('Signal :: Quality query')
+                    moni_string = send_command('AT#MONI')
+                    lg.info(f'Signal :: Quality: {moni_string}')
+                    log.write(moni_string)
+                    time.sleep(1)
 
+            except Exception as exc:
+                traceback.print_exc()
+                lg.error(f'There was error: {exc}')
+                self.wait_10s()
 
-if __name__ == '__main__':
-    asyncio.run(main())
+    def run(self):
+        with open('signal.txt', 'at') as log:
+            self._loop(log)
