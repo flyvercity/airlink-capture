@@ -3,9 +3,10 @@ import traceback
 import subprocess
 import time
 
+import signal_parsers as sp
+
 
 def send_command(at_command):
-    return '#MONI: Test PLMN 1-1 NR_BAND:79 NR_BW:100 NR_ULBW:100 NR_CH:723360 NR_ULCH:723360 NR_PWR:-60dbm NR_RSRP:-71 NR_RSRQ:-10 NR_PCI:11 NR_SINR:56 NR_STATE:2 NR_TXPWR:239 NR_DLMOD:1 NR_ULMOD:0'
     response = subprocess.run(
         [
             'mmcli',
@@ -47,7 +48,14 @@ class SignalCapture:
                     lg.debug('Signal :: Quality query')
                     moni_string = send_command('AT#MONI')
                     lg.info(f'Signal :: Quality: {moni_string}')
-                    log.write(moni_string)
+                    rsrp = sp.get_rsrp(moni_string)
+                    rsrq = sp.get_rsrq(moni_string)
+                    
+                    record = {
+                        'RSRP': rsrp,
+                        'RSRQ': rsrq
+                    }
+
                     time.sleep(1)
 
             except Exception as exc:
