@@ -51,7 +51,6 @@ class SignalCapture:
     def _loop(self):
         while True:
             try:
-                self.wait_10s()
                 lg.debug('Signal :: Entering the cycle')
                 while True:
                     if self.event.is_set():

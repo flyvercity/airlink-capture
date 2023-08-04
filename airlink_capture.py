@@ -20,7 +20,7 @@ class Logger:
     def __enter__(self):
         now = datetime.datetime.utcnow().timetuple()
         date_str = time.strftime('%Y-%m-%d_%H-%M-%S', now)
-        self.log = open(f'data/log_{date_str}.txt', 'w+')
+        self.log = open(f'data/log_{date_str}.fvcf', 'w+')
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -51,6 +51,7 @@ def main():
     parser.add_argument('--remote', type=str, default='127.0.0.1:14560')
     parser.add_argument('--nomavlink', action='store_true', default=False)
     parser.add_argument('--nomodem', action='store_true', default=False)
+    parser.add_argument('--noheartbeat', action='store_true', default=False)
     args = parser.parse_args()
     lg.basicConfig(level=lg.DEBUG if args.verbose else lg.INFO)
     event = Event()
@@ -70,12 +71,12 @@ def main():
 
         while True:
             try:
-                print('Press Ctrl+C to exit')
+                lg.info('Press Ctrl+C to exit')
 
                 while True:
                     time.sleep(1)
                     logger.submit()
-                    print('.', end='', flush=True)
+                    lg.debug('Main :: Submitting data')
 
             except KeyboardInterrupt:
                 lg.info('Exiting')

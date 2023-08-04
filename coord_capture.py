@@ -18,44 +18,47 @@ class CoordCapture:
         self._mav = None
 
     def _get_position(self):
+        lg.debug('Coords :: Requesting global position')
         message = self.recv_match(type='GLOBAL_POSITION_INT')
         print('GPS_DUMP', message)
+        return message
 
-    def _loop(self, log):
+    def _loop(self):
+        lg.info('Coords :: Entering the cycle')
         while True:
             try:
-                lg.debug('Coords :: Entering the cycle')
-                while True:
-                    if self.event.is_set():
-                        lg.debug('Coords :: Exiting')
-                        return
+                if self.event.is_set():
+                    lg.debug('Coords :: Exiting')
+                    return
 
-                    message = self._get_position()
+                message = self._get_position()
 
-                    # NB: Applying MAVlink 2.0 Spec conversions
-                    coords = {
-                        'lat': message.lat / 1.0e7,
-                        'lon': message.lon / 1.0e7,
-                        'alt': message.alt / 1000.0
-                    }
+                # NB: Applying MAVlink 2.0 Spec conversions
+                coords = {
+                    'lat': message.lat / 1.0e7,
+                    'lon': message.lon / 1.0e7,
+                    'alt': message.alt / 1000.0
+                }
 
-                    self.logger.set_coords(coords)
-                    time.sleep(1)
+                self.logger.set_coords(coords)
+                time.sleep(1)
 
             except Exception as exc:
                 traceback.print_exc()
                 lg.error('Coords :: There was error', exc)
+                # TODO: Add some delay here
+                time.sleep(1)
 
     def run(self):
-        lg.info(f'MAVlink : Connecting to {self.args.remote}')
+        lg.info(f'MAVlink : Connecting to {self.args.remote} (src={self.args.src}))')
 
         self._mav = mavutil.mavlink_connection(
             'udpout:' + self.args.remote,
             source_system=self.args.src,
         )
 
-        lg.info('MAVlink : Waiting for heartbeat')
-        self._mav.wait_heartbeat()
+        if not self.args.noheartbeat:
+            lg.info('MAVlink : Waiting for heartbeat')
+            self._mav.wait_heartbeat()
 
-        with open('coords.txt', 'at') as log:
-            self._loop(log)
+        self._loop()
