@@ -19,9 +19,20 @@ class CoordCapture:
 
     def _get_position(self):
         lg.debug('Coords :: Requesting global position')
-        message = self._mav.recv_match(type='GLOBAL_POSITION_INT')
-        print('GPS_DUMP', message)
-        return message
+
+        while True:
+            lg.debug('Coords :: Waiting for message')
+            msg = self._mav.recv_match(blocking=True)
+            lg.debug(f'Received message {msg.get_type()}: {msg}')
+
+            if msg.get_type() == 'HEARTBEAT':
+                lg.debug("HEARTBEAT from %d: %s" % (msg.get_srcSystem(), msg))
+
+            if msg.get_type() == 'GLOBAL_POSITION_INT':
+                break
+
+        print('GPS_DUMP', msg)
+        return msg
 
     def _loop(self):
         lg.info('Coords :: Entering the cycle')
