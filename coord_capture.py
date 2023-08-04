@@ -19,7 +19,7 @@ class CoordCapture:
 
     def _get_position(self):
         lg.debug('Coords :: Requesting global position')
-        message = self.recv_match(type='GLOBAL_POSITION_INT')
+        message = self._mav.recv_match(type='GLOBAL_POSITION_INT')
         print('GPS_DUMP', message)
         return message
 
