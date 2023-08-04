@@ -1,3 +1,4 @@
+import sys
 import logging as lg
 import traceback
 import subprocess
@@ -7,17 +8,28 @@ import signal_parsers as sp
 
 
 def send_command(at_command):
-    response = subprocess.run(
-        [
-            'mmcli',
-            '-m', '0',
-            '--command', at_command
+    ver = sys.version_info
 
-        ],
-        capture_output=True
-    )
+    if ver.major == 2:
+        raise Exception('Python 2 is not supported')
 
-    answer = response.stdout.decode('utf-8')
+    command = [
+        'mmcli',
+        '-m', '0',
+        '--command', at_command
+    ]
+
+    if ver.minor >= 10:
+        response = subprocess.run(
+            command,
+            capture_output=True
+        )
+
+        answer = response.stdout.decode('utf-8')
+    else:
+        result = subprocess.run(command, stdout=subprocess.PIPE)
+        answer = result.stdout.decode('utf-8')
+
     print('Raw response:', answer)
     return answer
 
