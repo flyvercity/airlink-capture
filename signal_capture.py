@@ -23,9 +23,10 @@ def send_command(at_command):
 
 
 class SignalCapture:
-    def __init__(self, args, event):
+    def __init__(self, args, event, logger):
         self.args = args
         self.event = event
+        self.logger = logger
 
     def wait_10s(self):
         for i in range(10):
@@ -35,7 +36,7 @@ class SignalCapture:
             if self.event.is_set():
                 return
 
-    def _loop(self, log):
+    def _loop(self):
         while True:
             try:
                 self.wait_10s()
@@ -50,11 +51,16 @@ class SignalCapture:
                     lg.info(f'Signal :: Quality: {moni_string}')
                     rsrp = sp.get_rsrp(moni_string)
                     rsrq = sp.get_rsrq(moni_string)
-                    
+                    nr_rsrp = sp.get_nr_rsrp(moni_string)
+                    nr_rsrq = sp.get_nr_rsrq(moni_string)
+
                     record = {
-                        'RSRP': rsrp,
-                        'RSRQ': rsrq
+                        'Radio': '5G' if nr_rsrp else '4G',
+                        'RSRP': nr_rsrp if nr_rsrp else rsrp,
+                        'RSRQ': nr_rsrq if nr_rsrq else rsrq
                     }
+
+                    self.logger.set_signal(record)
 
                     time.sleep(1)
 
@@ -64,5 +70,4 @@ class SignalCapture:
                 self.wait_10s()
 
     def run(self):
-        with open('signal.txt', 'at') as log:
-            self._loop(log)
+        self._loop()

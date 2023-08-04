@@ -11,10 +11,15 @@ def default_src():
 
 
 class CoordCapture:
-    def __init__(self, args, event):
+    def __init__(self, args, event, logger):
         self.args = args
         self.event = event
+        self.logger = logger
         self._mav = None
+
+    def _get_position(self):
+        message = self.recv_match(type='GLOBAL_POSITION_INT')
+        print('GPS_DUMP', message)
 
     def _loop(self, log):
         while True:
@@ -25,8 +30,16 @@ class CoordCapture:
                         lg.debug('Coords :: Exiting')
                         return
 
-                    m = self.recv_match(type='SENSOR_OFFSETS')
-                    print('M', m)
+                    message = self._get_position()
+
+                    # NB: Applying MAVlink 2.0 Spec conversions
+                    coords = {
+                        'lat': message.lat / 1.0e7,
+                        'lon': message.lon / 1.0e7,
+                        'alt': message.alt / 1000.0
+                    }
+
+                    self.logger.set_coords(coords)
                     time.sleep(1)
 
             except Exception as exc:
