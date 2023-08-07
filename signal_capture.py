@@ -5,6 +5,7 @@ import subprocess
 import time
 
 import signal_parsers as sp
+from airlink_utils import pprint
 
 
 def send_command(at_command):
@@ -65,12 +66,27 @@ class SignalCapture:
                     nr_rsrp = sp.get_nr_rsrp(moni_string)
                     nr_rsrq = sp.get_nr_rsrq(moni_string)
 
+                    if rsrp and nr_rsrq:
+                        radio = '5GNSA'
+                    elif nr_rsrp:
+                        radio = '5GSA'
+                    elif rsrp:
+                        radio = '4G'
+                    else:
+                        radio = 'UNKNOWN'
+
                     record = {
-                        'Radio': '5G' if nr_rsrp else '4G',
+                        'Radio': radio,
                         'RSRP': nr_rsrp if nr_rsrp else rsrp,
-                        'RSRQ': nr_rsrq if nr_rsrq else rsrq
+                        'RSRQ': nr_rsrq if nr_rsrq else rsrq,
+                        '4G_RSRP': rsrp,
+                        '4G_RSRQ': rsrq,
+                        '5G_RSRP': nr_rsrp,
+                        '5G_RSRQ': nr_rsrq,
+                        'moni': moni_string
                     }
 
+                    pprint(record)
                     self.logger.set_signal(record)
 
                     time.sleep(1)

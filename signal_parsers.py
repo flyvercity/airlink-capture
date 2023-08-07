@@ -1,5 +1,7 @@
 import re
 
+# TODO: Optimize these functions via pyparsing
+
 
 def get_rsrp(moni_string):
     rsrp = re.search(r' RSRP:(?P<rsrp>-?\d+)', moni_string)
