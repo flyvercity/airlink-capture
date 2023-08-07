@@ -74,10 +74,10 @@ class SignalCapture:
                     'Radio': radio,
                     'RSRP': nr_rsrp if nr_rsrp else rsrp,
                     'RSRQ': nr_rsrq if nr_rsrq else rsrq,
-                    '4G_RSRP': rsrp,
-                    '4G_RSRQ': rsrq,
-                    '5G_RSRP': nr_rsrp,
-                    '5G_RSRQ': nr_rsrq
+                    'RSRP_4G': rsrp,
+                    'RSRQ_4G': rsrq,
+                    'RSRP_5G': nr_rsrp,
+                    'RSRQ_5G': nr_rsrq
                 }
 
                 pprint(record)
