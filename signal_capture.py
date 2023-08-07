@@ -21,17 +21,13 @@ def send_command(at_command):
     ]
 
     if ver.minor >= 10:
-        response = subprocess.run(
-            command,
-            capture_output=True
-        )
-
+        response = subprocess.run(command, capture_output=True)
         answer = response.stdout.decode('utf-8')
     else:
         result = subprocess.run(command, stdout=subprocess.PIPE)
         answer = result.stdout.decode('utf-8')
 
-    print('Raw response:', answer)
+    lg.debug(f'Raw response: {answer}')
     return answer
 
 
@@ -50,46 +46,44 @@ class SignalCapture:
                 return
 
     def _loop(self):
+        lg.info('Signal :: Start')
         while True:
             try:
-                lg.debug('Signal :: Entering the cycle')
-                while True:
-                    if self.event.is_set():
-                        lg.debug('Signal :: Exiting')
-                        return
+                if self.event.is_set():
+                    lg.info('Signal :: Exiting')
+                    return
 
-                    lg.debug('Signal :: Quality query')
-                    moni_string = send_command('AT#MONI')
-                    lg.info(f'Signal :: Quality: {moni_string}')
-                    rsrp = sp.get_rsrp(moni_string)
-                    rsrq = sp.get_rsrq(moni_string)
-                    nr_rsrp = sp.get_nr_rsrp(moni_string)
-                    nr_rsrq = sp.get_nr_rsrq(moni_string)
+                lg.debug('Signal :: Quality query')
+                moni_string = send_command('AT#MONI')
+                lg.debug(f'Signal :: Quality: {moni_string}')
+                rsrp = sp.get_rsrp(moni_string)
+                rsrq = sp.get_rsrq(moni_string)
+                nr_rsrp = sp.get_nr_rsrp(moni_string)
+                nr_rsrq = sp.get_nr_rsrq(moni_string)
 
-                    if rsrp and nr_rsrq:
-                        radio = '5GNSA'
-                    elif nr_rsrp:
-                        radio = '5GSA'
-                    elif rsrp:
-                        radio = '4G'
-                    else:
-                        radio = 'UNKNOWN'
+                if rsrp and nr_rsrq:
+                    radio = '5GNSA'
+                elif nr_rsrp:
+                    radio = '5GSA'
+                elif rsrp:
+                    radio = '4G'
+                else:
+                    radio = 'UNKNOWN'
 
-                    record = {
-                        'Radio': radio,
-                        'RSRP': nr_rsrp if nr_rsrp else rsrp,
-                        'RSRQ': nr_rsrq if nr_rsrq else rsrq,
-                        '4G_RSRP': rsrp,
-                        '4G_RSRQ': rsrq,
-                        '5G_RSRP': nr_rsrp,
-                        '5G_RSRQ': nr_rsrq,
-                        'moni': moni_string
-                    }
+                record = {
+                    'Radio': radio,
+                    'RSRP': nr_rsrp if nr_rsrp else rsrp,
+                    'RSRQ': nr_rsrq if nr_rsrq else rsrq,
+                    '4G_RSRP': rsrp,
+                    '4G_RSRQ': rsrq,
+                    '5G_RSRP': nr_rsrp,
+                    '5G_RSRQ': nr_rsrq
+                }
 
-                    pprint(record)
-                    self.logger.set_signal(record)
+                pprint(record)
+                self.logger.set_signal(record)
 
-                    time.sleep(1)
+                time.sleep(1)
 
             except Exception as exc:
                 traceback.print_exc()

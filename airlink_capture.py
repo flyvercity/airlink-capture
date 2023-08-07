@@ -14,7 +14,7 @@ class Logger:
         self.args = args
         self.lock = Lock()
         self.signal = None
-        self.coords = None
+        self.position = None
         self.log = None
 
     def __enter__(self):
@@ -30,14 +30,18 @@ class Logger:
         with self.lock:
             self.signal = signal
 
-    def set_coords(self, coords):
+    def set_position(self, position):
         with self.lock:
-            self.coords = coords
+            self.position = position
 
     def submit(self):
         with self.lock:
+            now = datetime.datetime.utcnow()
+            timestamp = {'unix': now.timestamp()}
+
             record_str = json.dumps({
-                'position': self.coords,
+                'timestamp': timestamp,
+                'position': self.position,
                 'signal': self.signal
             })
 
@@ -51,7 +55,6 @@ def main():
     parser.add_argument('--remote', type=str, default='127.0.0.1:14560')
     parser.add_argument('--nomavlink', action='store_true', default=False)
     parser.add_argument('--nomodem', action='store_true', default=False)
-    parser.add_argument('--noheartbeat', action='store_true', default=False)
     args = parser.parse_args()
     lg.basicConfig(level=lg.DEBUG if args.verbose else lg.INFO)
     event = Event()
