@@ -182,13 +182,12 @@ def run_either_mode(args, stats):
             process_fcvf_file(fcvf_file, args, stats)
         return
 
-    raise RuntimeError('Either --file or --dir must be specified')
+    raise UserWarning('Either --file or --dir must be specified')
 
 
 def main():
     args = cli_getargs()
     lg.basicConfig(level=lg.DEBUG if args.verbose else lg.INFO)
-
     stats = Stats()
     run_either_mode(args, stats)
     stats.print()
