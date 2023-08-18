@@ -71,13 +71,14 @@ class SignalCapture:
                     radio = 'UNKNOWN'
 
                 record = {
-                    'Radio': radio,
+                    'radio': radio,
                     'RSRP': nr_rsrp if nr_rsrp else rsrp,
                     'RSRQ': nr_rsrq if nr_rsrq else rsrq,
                     'RSRP_4G': rsrp,
                     'RSRQ_4G': rsrq,
                     'RSRP_5G': nr_rsrp,
-                    'RSRQ_5G': nr_rsrq
+                    'RSRQ_5G': nr_rsrq,
+                    'moni': moni_string
                 }
 
                 pprint(record)
